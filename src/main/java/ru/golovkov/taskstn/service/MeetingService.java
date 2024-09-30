@@ -4,18 +4,19 @@ import ru.golovkov.taskstn.model.dto.request.MeetingRequestDto;
 import ru.golovkov.taskstn.model.dto.response.MeetingResponseDto;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface MeetingService {
 
     List<MeetingResponseDto> getAll();
 
-    MeetingResponseDto getById(String id);
+    MeetingResponseDto getById(UUID id);
 
     MeetingResponseDto create(MeetingRequestDto meetingRequestDto);
 
     MeetingResponseDto update(MeetingRequestDto meetingRequestDto);
 
-    void deleteById(String id);
+    void deleteById(UUID id);
 }
 
 

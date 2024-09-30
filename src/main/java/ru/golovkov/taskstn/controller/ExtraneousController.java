@@ -10,6 +10,8 @@ import ru.golovkov.taskstn.model.dto.response.UserSuggestionResponseDto;
 import ru.golovkov.taskstn.service.MeetingService;
 import ru.golovkov.taskstn.service.UserService;
 
+import java.util.UUID;
+
 @RestController
 @RequiredArgsConstructor
 public class ExtraneousController {
@@ -25,7 +27,7 @@ public class ExtraneousController {
 
 
     @GetMapping("/event/{eventId}")
-    public MeetingResponseDto getMeetingById(@PathVariable(name = "eventId") String meetingId) {
+    public MeetingResponseDto getMeetingById(@PathVariable(name = "eventId") UUID meetingId) {
         return meetingService.getById(meetingId);
     }
 }

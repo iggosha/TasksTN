@@ -7,6 +7,7 @@ import ru.golovkov.taskstn.model.dto.response.MeetingResponseDto;
 import ru.golovkov.taskstn.service.MeetingService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class MeetingController {
     }
 
     @DeleteMapping("/{meetingId}")
-    public void deleteMeeting(@PathVariable String meetingId) {
+    public void deleteMeeting(@PathVariable UUID meetingId) {
         meetingService.deleteById(meetingId);
     }
 }

@@ -4,11 +4,12 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class MeetingRequestDto {
 
-    private String id;
+    private UUID id;
     private String name;
     private String place;
     private String comment;

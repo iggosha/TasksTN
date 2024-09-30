@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="create-user" author="igor" created="30/09/2024">
+        <createTable tableName="tb_hr">
+            <column name="id" type="uuid" autoIncrement="false">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="fio" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="photo" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-meeting" author="igor" created="30/09/2024">
+        <createTable tableName="tb_meeting">
+            <column name="id" type="uuid" autoIncrement="false">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="place" type="varchar(255)"/>
+            <column name="comment" type="varchar(255)"/>
+            <column name="start_date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_full_day" type="boolean"/>
+            <column name="is_online" type="boolean"/>
+            <column name="is_outlook_event" type="boolean"/>
+            <column name="is_view_meeting" type="boolean"/>
+            <column name="is_start_meeting" type="boolean"/>
+            <column name="applicant_id" type="uuid">
+                <constraints foreignKeyName="fk_meeting_applicant" references="tb_hr(id)"/>
+            </column>
+            <column name="email_author" type="uuid">
+                <constraints foreignKeyName="fk_meeting_author" references="tb_hr(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-meeting-user" author="igor" created="30/09/2024">
+        <createTable tableName="tb_meeting_recipient">
+            <column name="meeting_id" type="uuid">
+                <constraints foreignKeyName="fk_meeting_recipient_meeting" references="tb_meeting(id)"/>
+            </column>
+            <column name="email_recipient" type="uuid">
+                <constraints foreignKeyName="fk_meeting_recipient_user" references="tb_hr(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>
