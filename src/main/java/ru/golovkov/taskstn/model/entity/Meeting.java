@@ -39,15 +39,15 @@ public class Meeting {
 
     private Boolean isStartMeeting;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "applicant_id")
     private User applicant;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "email_author")
     private User author;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "tb_meeting_recipient",
             joinColumns = @JoinColumn(name = "meeting_id"),

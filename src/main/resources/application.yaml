@@ -1,5 +1,12 @@
 spring:
   application:
     name: TasksTN
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: user
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    hibernate.ddl-auto: update
 server:
   port: 8081

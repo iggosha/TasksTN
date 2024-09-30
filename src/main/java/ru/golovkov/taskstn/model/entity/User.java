@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "tb_hr")
 @Data
@@ -24,4 +26,12 @@ public class User {
 
     private String photo;
 
+    @OneToMany(mappedBy = "applicant", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Meeting> applicantMeetings;
+
+    @OneToMany(mappedBy = "author", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Meeting> authorMeetings;
+
+    @ManyToMany(mappedBy = "recipients", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Meeting> recipientMeetings;
 }

@@ -34,5 +34,4 @@ public class MeetingController {
     public void deleteMeeting(@PathVariable String meetingId) {
         meetingService.deleteById(meetingId);
     }
-
 }

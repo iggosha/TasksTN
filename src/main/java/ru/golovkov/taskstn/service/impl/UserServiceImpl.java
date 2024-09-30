@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.golovkov.taskstn.mapper.UserMapper;
+import ru.golovkov.taskstn.model.dto.request.UserRequestDto;
 import ru.golovkov.taskstn.model.dto.response.UserResponseDto;
 import ru.golovkov.taskstn.model.dto.response.UserSuggestionResponseDto;
 import ru.golovkov.taskstn.model.entity.User;
 import ru.golovkov.taskstn.repository.UserRepository;
+import ru.golovkov.taskstn.security.CustomUserDetails;
 import ru.golovkov.taskstn.service.UserService;
 
 import java.util.ArrayList;
@@ -24,16 +27,21 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
         return userMapper.toResponseDtoList(userRepository.findAll());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserSuggestionResponseDto getUserSuggestions(String query) {
         UserSuggestionResponseDto userSuggestionResponseDto = new UserSuggestionResponseDto();
-        List<UserSuggestionResponseDto.UserSuggestionItem> userSuggestionItemList = userSuggestionResponseDto.getUserSuggestionItemList();
+        userSuggestionResponseDto.setUserSuggestionItemList(new ArrayList<>());
+        List<UserSuggestionResponseDto.UserSuggestionItem> userSuggestionItemList
+                = userSuggestionResponseDto.getUserSuggestionItemList();
         String[] words = query.split("\\s+");
         for (String word : words) {
             if (word.length() < 3) {
@@ -50,7 +58,8 @@ public class UserServiceImpl implements UserService {
         userSuggestionItemList.addAll(foundUsers
                 .stream()
                 .map(user -> {
-                    UserSuggestionResponseDto.UserSuggestionItem userSuggestionItem = new UserSuggestionResponseDto.UserSuggestionItem();
+                    UserSuggestionResponseDto.UserSuggestionItem userSuggestionItem
+                            = new UserSuggestionResponseDto.UserSuggestionItem();
                     userSuggestionItem.setValueId(user.getEmail());
                     userSuggestionItem.setValue(user.getFio());
                     userSuggestionItem.setDirectoryType("USER");
@@ -64,8 +73,23 @@ public class UserServiceImpl implements UserService {
         return userSuggestionResponseDto;
     }
 
+    @Override
+    public UserResponseDto create(UserRequestDto userRequestDto) {
+        User user = userMapper.toEntity(userRequestDto);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user = userRepository.save(user);
+        return userMapper.toResponseDto(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserResponseDtoFromUserDetails(CustomUserDetails userDetails) {
+        return userMapper.toResponseDto(userDetails.getUser());
+    }
+
     private UserSuggestionResponseDto.UserSuggestionItem getEmailSuggestion(String query) {
-        UserSuggestionResponseDto.UserSuggestionItem userSuggestionItem = new UserSuggestionResponseDto.UserSuggestionItem();
+        UserSuggestionResponseDto.UserSuggestionItem userSuggestionItem
+                = new UserSuggestionResponseDto.UserSuggestionItem();
         userSuggestionItem.setValueId(query);
         userSuggestionItem.setValue("");
         return userSuggestionItem;

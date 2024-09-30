@@ -24,6 +24,7 @@ public interface MeetingMapper {
 
     List<MeetingResponseDto> toResponseDtoList(List<Meeting> meetingList);
 
+    @Mapping(target = "id", ignore = true)
     void updateEntityFromRequestDto(@MappingTarget Meeting meeting, MeetingRequestDto requestDto);
 
     @Named("mapRecipientsToEmails")

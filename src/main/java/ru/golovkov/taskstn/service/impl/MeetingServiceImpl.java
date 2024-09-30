@@ -8,6 +8,7 @@ import ru.golovkov.taskstn.mapper.MeetingMapper;
 import ru.golovkov.taskstn.model.dto.request.MeetingRequestDto;
 import ru.golovkov.taskstn.model.dto.response.MeetingResponseDto;
 import ru.golovkov.taskstn.model.entity.Meeting;
+import ru.golovkov.taskstn.model.entity.User;
 import ru.golovkov.taskstn.repository.MeetingRepository;
 import ru.golovkov.taskstn.repository.UserRepository;
 import ru.golovkov.taskstn.service.MeetingService;
@@ -24,11 +25,13 @@ public class MeetingServiceImpl implements MeetingService {
     private final MeetingMapper meetingMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<MeetingResponseDto> getAll() {
         return meetingMapper.toResponseDtoList(meetingRepository.findAll());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MeetingResponseDto getById(String id) {
         return meetingMapper.toResponseDto(getMeetingById(id));
     }
@@ -36,9 +39,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public MeetingResponseDto create(MeetingRequestDto meetingRequestDto) {
         Meeting meeting = meetingMapper.toEntity(meetingRequestDto);
-        meeting.setAuthor(userRepository.findByEmail(meetingRequestDto.getAuthorEmail()));
-        meeting.setApplicant(userRepository.findById(meetingRequestDto.getApplicantId()).orElseThrow());
-        meeting.setRecipients(userRepository.findAllById(meetingRequestDto.getRecipientEmails()));
+        setMeetingParticipantsFromRequestDto(meetingRequestDto, meeting);
         Meeting savedMeeting = meetingRepository.save(meeting);
         return meetingMapper.toResponseDto(savedMeeting);
     }
@@ -56,9 +57,32 @@ public class MeetingServiceImpl implements MeetingService {
         meetingRepository.deleteById(id);
     }
 
+    private void setMeetingParticipantsFromRequestDto(MeetingRequestDto meetingRequestDto, Meeting meeting) {
+        meeting.setAuthor(userRepository
+                .findByEmail(meetingRequestDto.getAuthorEmail())
+                .orElseThrow(() -> new ResourceNotFoundException
+                        ("No author was found with email: " + meetingRequestDto.getAuthorEmail())
+                )
+        );
+        meeting.setApplicant(userRepository
+                .findById(meetingRequestDto.getApplicantId())
+                .orElseThrow(() -> new ResourceNotFoundException
+                        ("No applicant was found with id: " + meetingRequestDto.getApplicantId())
+                )
+        );
+        List<User> foundByEmailsRecipients = userRepository.findAllByEmailIn(meetingRequestDto.getRecipientEmails());
+        if (foundByEmailsRecipients.isEmpty()) {
+            throw new ResourceNotFoundException
+                    ("No recipients were found with emails: " + meetingRequestDto.getRecipientEmails());
+        }
+        meeting.setRecipients(foundByEmailsRecipients);
+    }
+
     private Meeting getMeetingById(String id) {
         return meetingRepository
                 .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Meeting not found"));
+                .orElseThrow(() -> new ResourceNotFoundException
+                        ("No meeting was found with id: " + id)
+                );
     }
 }

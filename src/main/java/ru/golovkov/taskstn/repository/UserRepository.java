@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ru.golovkov.taskstn.model.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
@@ -25,5 +26,7 @@ public interface UserRepository extends JpaRepository<User, String> {
             "AND u.email LIKE %:word2%)")
     List<User> findByTwoWords(@Param("word1") String word1, @Param("word2") String word2, Pageable pageable);
 
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
+
+    List<User> findAllByEmailIn(List<String> emails);
 }
