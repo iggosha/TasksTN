@@ -23,7 +23,7 @@ import ru.golovkov.taskstn.model.entity.User;
 import ru.golovkov.taskstn.repository.UserRepository;
 import ru.golovkov.taskstn.security.CustomUserDetails;
 import ru.golovkov.taskstn.service.UserService;
-import ru.golovkov.taskstn.utils.ValidationUtils;
+import ru.golovkov.taskstn.validation.ValidationUtils;
 
 import java.util.ArrayList;
 import java.util.List;

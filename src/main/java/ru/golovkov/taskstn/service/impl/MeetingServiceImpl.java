@@ -72,10 +72,6 @@ public class MeetingServiceImpl implements MeetingService {
                 )
         );
         List<User> foundByEmailsRecipients = userRepository.findAllByEmailIn(meetingRequestDto.getRecipientEmails());
-        if (foundByEmailsRecipients.isEmpty()) {
-            throw new ResourceNotFoundException
-                    ("No recipients were found with emails: " + meetingRequestDto.getRecipientEmails());
-        }
         meeting.setRecipients(foundByEmailsRecipients);
     }
 

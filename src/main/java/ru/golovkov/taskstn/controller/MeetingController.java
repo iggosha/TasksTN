@@ -1,6 +1,8 @@
 package ru.golovkov.taskstn.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.golovkov.taskstn.model.dto.request.MeetingRequestDto;
 import ru.golovkov.taskstn.model.dto.response.MeetingResponseDto;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/meetings")
+@Validated
 public class MeetingController {
 
     private final MeetingService meetingService;
@@ -22,12 +25,12 @@ public class MeetingController {
     }
 
     @PostMapping
-    public MeetingResponseDto createMeeting(@RequestBody MeetingRequestDto meetingRequestDto) {
+    public MeetingResponseDto createMeeting(@Valid @RequestBody MeetingRequestDto meetingRequestDto) {
         return meetingService.create(meetingRequestDto);
     }
 
     @PutMapping
-    public MeetingResponseDto updateMeeting(@RequestBody MeetingRequestDto meetingRequestDto) {
+    public MeetingResponseDto updateMeeting(@Valid @RequestBody MeetingRequestDto meetingRequestDto) {
         return meetingService.update(meetingRequestDto);
     }
 

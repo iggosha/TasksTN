@@ -1,4 +1,4 @@
-package ru.golovkov.taskstn.utils;
+package ru.golovkov.taskstn.validation;
 
 import java.util.regex.Pattern;
 
