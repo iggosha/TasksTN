@@ -14,6 +14,7 @@ import ru.golovkov.taskstn.repository.UserRepository;
 import ru.golovkov.taskstn.service.MeetingService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional(readOnly = true)
-    public MeetingResponseDto getById(String id) {
+    public MeetingResponseDto getById(UUID id) {
         return meetingMapper.toResponseDto(getMeetingById(id));
     }
 
@@ -53,7 +54,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public void deleteById(String id) {
+    public void deleteById(UUID id) {
         meetingRepository.deleteById(id);
     }
 
@@ -65,20 +66,16 @@ public class MeetingServiceImpl implements MeetingService {
                 )
         );
         meeting.setApplicant(userRepository
-                .findById(meetingRequestDto.getApplicantId())
+                .findById(UUID.fromString(meetingRequestDto.getApplicantId()))
                 .orElseThrow(() -> new ResourceNotFoundException
                         ("No applicant was found with id: " + meetingRequestDto.getApplicantId())
                 )
         );
         List<User> foundByEmailsRecipients = userRepository.findAllByEmailIn(meetingRequestDto.getRecipientEmails());
-        if (foundByEmailsRecipients.isEmpty()) {
-            throw new ResourceNotFoundException
-                    ("No recipients were found with emails: " + meetingRequestDto.getRecipientEmails());
-        }
         meeting.setRecipients(foundByEmailsRecipients);
     }
 
-    private Meeting getMeetingById(String id) {
+    private Meeting getMeetingById(UUID id) {
         return meetingRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException

@@ -1,13 +1,21 @@
 package ru.golovkov.taskstn.service.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.golovkov.taskstn.mapper.UserMapper;
+import ru.golovkov.taskstn.model.dto.request.SignInRequestDto;
 import ru.golovkov.taskstn.model.dto.request.UserRequestDto;
 import ru.golovkov.taskstn.model.dto.response.UserResponseDto;
 import ru.golovkov.taskstn.model.dto.response.UserSuggestionResponseDto;
@@ -15,10 +23,10 @@ import ru.golovkov.taskstn.model.entity.User;
 import ru.golovkov.taskstn.repository.UserRepository;
 import ru.golovkov.taskstn.security.CustomUserDetails;
 import ru.golovkov.taskstn.service.UserService;
+import ru.golovkov.taskstn.validation.ValidationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @Override
     @Transactional(readOnly = true)
@@ -38,39 +47,36 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserSuggestionResponseDto getUserSuggestions(String query) {
-        UserSuggestionResponseDto userSuggestionResponseDto = new UserSuggestionResponseDto();
-        userSuggestionResponseDto.setUserSuggestionItemList(new ArrayList<>());
-        List<UserSuggestionResponseDto.UserSuggestionItem> userSuggestionItemList
-                = userSuggestionResponseDto.getUserSuggestionItemList();
+        List<UserSuggestionResponseDto.UserSuggestionItem> userSuggestionItemList = new ArrayList<>();
         String[] words = query.split("\\s+");
+        if (containsAnyShortWord(words)) {
+            return new UserSuggestionResponseDto(userSuggestionItemList);
+        }
+        userSuggestionItemList.addAll(userMapper.toUserSuggestionItemList(findUsersByWords(words)));
+        if (userSuggestionItemList.isEmpty() && ValidationUtils.matchesEmailPattern(query)) {
+            userSuggestionItemList.add(getEmailSuggestion(query));
+        }
+        return new UserSuggestionResponseDto(userSuggestionItemList);
+    }
+
+    private boolean containsAnyShortWord(String[] words) {
         for (String word : words) {
             if (word.length() < 3) {
-                return userSuggestionResponseDto;
+                return true;
             }
         }
-        Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "fio"));
+        return false;
+    }
+
+    private List<User> findUsersByWords(String[] words) {
         List<User> foundUsers = new ArrayList<>();
+        Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "fio"));
         if (words.length == 2) {
             foundUsers = userRepository.findByTwoWords(words[0], words[1], pageable);
         } else if (words.length == 1) {
             foundUsers = userRepository.findBySingleWord(words[0], pageable);
         }
-        userSuggestionItemList.addAll(foundUsers
-                .stream()
-                .map(user -> {
-                    UserSuggestionResponseDto.UserSuggestionItem userSuggestionItem
-                            = new UserSuggestionResponseDto.UserSuggestionItem();
-                    userSuggestionItem.setValueId(user.getEmail());
-                    userSuggestionItem.setValue(user.getFio());
-                    userSuggestionItem.setDirectoryType("USER");
-                    return userSuggestionItem;
-                })
-                .toList());
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        if (foundUsers.isEmpty() && Pattern.matches(emailRegex, query)) {
-            userSuggestionItemList.add(getEmailSuggestion(query));
-        }
-        return userSuggestionResponseDto;
+        return foundUsers;
     }
 
     @Override
@@ -82,9 +88,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public UserResponseDto getUserResponseDtoFromUserDetails(CustomUserDetails userDetails) {
-        return userMapper.toResponseDto(userDetails.getUser());
+    public UserResponseDto authenticateAndGetUserResponseDto(SignInRequestDto signInRequestDto, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(signInRequestDto.getEmail(), signInRequestDto.getPassword());
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(authentication);
+        request.getSession().setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        return userMapper.toResponseDto(
+                ((CustomUserDetails) authentication.getPrincipal()).getUser()
+        );
     }
 
     private UserSuggestionResponseDto.UserSuggestionItem getEmailSuggestion(String query) {

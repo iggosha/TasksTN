@@ -1,9 +1,10 @@
 package ru.golovkov.taskstn.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import ru.golovkov.taskstn.model.dto.request.SignInRequestDto;
 import ru.golovkov.taskstn.model.dto.request.UserRequestDto;
 import ru.golovkov.taskstn.model.dto.response.UserResponseDto;
 import ru.golovkov.taskstn.model.dto.response.UserSuggestionResponseDto;
-import ru.golovkov.taskstn.security.CustomUserDetails;
 
 import java.util.List;
 
@@ -15,5 +16,5 @@ public interface UserService {
 
     UserResponseDto create(UserRequestDto userRequestDto);
 
-    UserResponseDto getUserResponseDtoFromUserDetails(CustomUserDetails user);
+    UserResponseDto authenticateAndGetUserResponseDto(SignInRequestDto signInRequestDto, HttpServletRequest request);
 }

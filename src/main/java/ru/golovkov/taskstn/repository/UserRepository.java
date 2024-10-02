@@ -9,9 +9,10 @@ import ru.golovkov.taskstn.model.entity.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Query("SELECT u FROM User u WHERE " +
             "u.fio LIKE CONCAT(:word, ' %') " +
