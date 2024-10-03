@@ -47,9 +47,11 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public MeetingResponseDto update(MeetingRequestDto meetingRequestDto) {
-        Meeting meetingEntity = getMeetingById(meetingRequestDto.getId());
-        meetingMapper.updateEntityFromRequestDto(meetingEntity, meetingRequestDto);
-        Meeting updatedMeeting = meetingRepository.save(meetingEntity);
+        Meeting meeting = getMeetingById(meetingRequestDto.getId());
+        meetingMapper.updateEntityFromRequestDto(meeting, meetingRequestDto);
+        List<User> allFoundByEmailsUsers = userRepository.findAllByEmailIn(meetingRequestDto.getRecipientEmails());
+        meeting.setRecipients(allFoundByEmailsUsers);
+        Meeting updatedMeeting = meetingRepository.save(meeting);
         return meetingMapper.toResponseDto(updatedMeeting);
     }
 
@@ -66,7 +68,7 @@ public class MeetingServiceImpl implements MeetingService {
                 )
         );
         meeting.setApplicant(userRepository
-                .findById(UUID.fromString(meetingRequestDto.getApplicantId()))
+                .findById(meetingRequestDto.getApplicantId())
                 .orElseThrow(() -> new ResourceNotFoundException
                         ("No applicant was found with id: " + meetingRequestDto.getApplicantId())
                 )

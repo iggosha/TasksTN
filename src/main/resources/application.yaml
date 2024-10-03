@@ -2,10 +2,10 @@ spring:
   application:
     name: TasksTN
   datasource:
-    url: jdbc:h2:./database/h2db
-    username: user
-    password: password
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5444/postgres
+    username: postgres
+    password: postgres
+    driverClassName: org.postgresql.Driver
   jpa:
     hibernate.ddl-auto: none
   liquibase:
