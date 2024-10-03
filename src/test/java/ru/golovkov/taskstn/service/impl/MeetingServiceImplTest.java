@@ -77,9 +77,25 @@ public class MeetingServiceImplTest {
                 true, applicant, author, List.of(recipient));
     }
 
+    private MeetingRequestDto createMeetingRequestDto() {
+        MeetingRequestDto meetingRequestDto = new MeetingRequestDto();
+        meetingRequestDto.setName("New Meeting");
+        meetingRequestDto.setPlace("New Place");
+        meetingRequestDto.setComment("New Comment");
+        meetingRequestDto.setStartDate(LocalDateTime.now());
+        meetingRequestDto.setEndDate(LocalDateTime.now().plusHours(1));
+        meetingRequestDto.setIsFullDay(true);
+        meetingRequestDto.setIsOnline(true);
+        meetingRequestDto.setIsOutlookEvent(true);
+        meetingRequestDto.setApplicantId(applicant.getId());
+        meetingRequestDto.setAuthorEmail(author.getEmail());
+        meetingRequestDto.setRecipientEmails(List.of(recipient.getEmail()));
+        return meetingRequestDto;
+    }
+
     @Test
     @Transactional
-    void testGetAll() {
+    void testGetAllMeetings() {
         Meeting meeting = createMeetingObject();
         meetingRepository.save(meeting);
         List<MeetingResponseDto> meetings = meetingService.getAll();
@@ -88,7 +104,7 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testGetById() {
+    void testGetMeetingById() {
         Meeting meeting = createMeetingObject();
         meeting = meetingRepository.save(meeting);
 
@@ -99,25 +115,14 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testGetById_NotFound() {
+    void testGetMeetingById_NotFound() {
         assertThrows(ResourceNotFoundException.class, () -> meetingService.getById(nonExistentId));
     }
 
     @Test
     @Transactional
-    void testCreate() {
-        MeetingRequestDto meetingRequestDto = new MeetingRequestDto();
-        meetingRequestDto.setName("New Meeting");
-        meetingRequestDto.setPlace("New Place");
-        meetingRequestDto.setComment("New Comment");
-        meetingRequestDto.setStartDate(LocalDateTime.now());
-        meetingRequestDto.setEndDate(LocalDateTime.now().plusHours(1));
-        meetingRequestDto.setIsFullDay(true);
-        meetingRequestDto.setIsOnline(true);
-        meetingRequestDto.setIsOutlookEvent(true);
-        meetingRequestDto.setApplicantId(applicant.getId());
-        meetingRequestDto.setAuthorEmail(author.getEmail());
-        meetingRequestDto.setRecipientEmails(List.of(recipient.getEmail()));
+    void testCreateMeeting() {
+        MeetingRequestDto meetingRequestDto = createMeetingRequestDto();
 
         MeetingResponseDto createdMeeting = meetingService.create(meetingRequestDto);
         assertNotNull(createdMeeting);
@@ -126,18 +131,8 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testCreate_ApplicantNotFound() {
-        MeetingRequestDto meetingRequestDto = new MeetingRequestDto();
-        meetingRequestDto.setName("New Meeting");
-        meetingRequestDto.setPlace("New Place");
-        meetingRequestDto.setComment("New Comment");
-        meetingRequestDto.setStartDate(LocalDateTime.now());
-        meetingRequestDto.setEndDate(LocalDateTime.now().plusHours(1));
-        meetingRequestDto.setIsFullDay(true);
-        meetingRequestDto.setIsOnline(true);
-        meetingRequestDto.setIsOutlookEvent(true);
-        meetingRequestDto.setAuthorEmail(author.getEmail());
-        meetingRequestDto.setRecipientEmails(List.of(recipient.getEmail()));
+    void testCreateMeeting_ApplicantNotFound() {
+        MeetingRequestDto meetingRequestDto = createMeetingRequestDto();
         meetingRequestDto.setApplicantId(nonExistentId);
 
         assertThrows(ResourceNotFoundException.class, () -> meetingService.create(meetingRequestDto));
@@ -145,23 +140,13 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testUpdate() {
+    void testUpdateMeeting() {
         Meeting meeting = createMeetingObject();
         meeting = meetingRepository.save(meeting);
 
-        MeetingRequestDto meetingRequestDto = new MeetingRequestDto();
+        MeetingRequestDto meetingRequestDto = createMeetingRequestDto();
         meetingRequestDto.setId(meeting.getId());
         meetingRequestDto.setName("Updated Meeting");
-        meetingRequestDto.setPlace("Updated Place");
-        meetingRequestDto.setComment("Updated Comment");
-        meetingRequestDto.setStartDate(LocalDateTime.now());
-        meetingRequestDto.setEndDate(LocalDateTime.now().plusHours(1));
-        meetingRequestDto.setIsFullDay(true);
-        meetingRequestDto.setIsOnline(true);
-        meetingRequestDto.setIsOutlookEvent(true);
-        meetingRequestDto.setApplicantId(applicant.getId());
-        meetingRequestDto.setAuthorEmail(author.getEmail());
-        meetingRequestDto.setRecipientEmails(List.of(recipient.getEmail()));
 
         MeetingResponseDto updatedMeeting = meetingService.update(meetingRequestDto);
         assertNotNull(updatedMeeting);
@@ -170,27 +155,16 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testUpdate_NotFound() {
-        MeetingRequestDto meetingRequestDto = new MeetingRequestDto();
+    void testUpdateMeeting_NotFound() {
+        MeetingRequestDto meetingRequestDto = createMeetingRequestDto();
         meetingRequestDto.setId(nonExistentId);
-        meetingRequestDto.setName("Updated Meeting");
-        meetingRequestDto.setPlace("Updated Place");
-        meetingRequestDto.setComment("Updated Comment");
-        meetingRequestDto.setStartDate(LocalDateTime.now());
-        meetingRequestDto.setEndDate(LocalDateTime.now().plusHours(1));
-        meetingRequestDto.setIsFullDay(true);
-        meetingRequestDto.setIsOnline(true);
-        meetingRequestDto.setIsOutlookEvent(true);
-        meetingRequestDto.setApplicantId(applicant.getId());
-        meetingRequestDto.setAuthorEmail(author.getEmail());
-        meetingRequestDto.setRecipientEmails(List.of(recipient.getEmail()));
 
         assertThrows(ResourceNotFoundException.class, () -> meetingService.update(meetingRequestDto));
     }
 
     @Test
     @Transactional
-    void testDeleteById() {
+    void testDeleteMeetingById() {
         Meeting meeting = createMeetingObject();
         meeting = meetingRepository.save(meeting);
 
@@ -200,7 +174,7 @@ public class MeetingServiceImplTest {
 
     @Test
     @Transactional
-    void testDeleteById_NotFound() {
+    void testDeleteMeetingById_NotFound() {
         assertDoesNotThrow(() -> meetingService.deleteById(nonExistentId));
     }
 }

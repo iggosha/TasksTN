@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,6 +23,7 @@ import ru.golovkov.taskstn.model.dto.response.UserResponseDto;
 import ru.golovkov.taskstn.model.dto.response.UserSuggestionResponseDto;
 import ru.golovkov.taskstn.model.entity.User;
 import ru.golovkov.taskstn.repository.UserRepository;
+import ru.golovkov.taskstn.exception.ResourceAlreadyExistsException;
 
 import java.util.List;
 import java.util.UUID;
@@ -73,21 +73,26 @@ public class UserServiceImplTest {
                 null, null, null);
     }
 
+    private UserRequestDto createUserRequestDto() {
+        UserRequestDto userRequestDto = new UserRequestDto();
+        userRequestDto.setEmail("newuser@example.com");
+        userRequestDto.setPassword("newpassword");
+        userRequestDto.setFio("New User");
+        userRequestDto.setPhoto("newphoto");
+        return userRequestDto;
+    }
+
     @Test
     @Transactional
-    void testGetAll() {
+    void testGetAllUsers() {
         List<UserResponseDto> users = userService.getAll();
         assertFalse(users.isEmpty());
     }
 
     @Test
     @Transactional
-    void testCreate() {
-        UserRequestDto userRequestDto = new UserRequestDto();
-        userRequestDto.setEmail("newuser@example.com");
-        userRequestDto.setPassword("newpassword");
-        userRequestDto.setFio("New User");
-        userRequestDto.setPhoto("newphoto");
+    void testCreateUser() {
+        UserRequestDto userRequestDto = createUserRequestDto();
 
         UserResponseDto createdUser = userService.create(userRequestDto);
         assertNotNull(createdUser);
@@ -95,14 +100,12 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void testCreate_UserAlreadyExists() {
+    void testCreateUser_UserAlreadyExists() {
         User existingUser = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
-        UserRequestDto userRequestDto = new UserRequestDto();
+        UserRequestDto userRequestDto = createUserRequestDto();
         userRequestDto.setEmail(existingUser.getEmail());
-        userRequestDto.setPassword("newpassword");
-        userRequestDto.setFio("New User");
-        userRequestDto.setPhoto("newphoto");
-        assertThrows(DataIntegrityViolationException.class, () -> userService.create(userRequestDto));
+
+        assertThrows(ResourceAlreadyExistsException.class, () -> userService.create(userRequestDto));
     }
 
     @Test
@@ -117,9 +120,7 @@ public class UserServiceImplTest {
     @Test
     @Transactional
     void testAuthenticateAndGetUserResponseDto() {
-        SignInRequestDto signInRequestDto = new SignInRequestDto();
-        signInRequestDto.setEmail(user.getEmail());
-        signInRequestDto.setPassword("password");
+        SignInRequestDto signInRequestDto = new SignInRequestDto(user.getEmail(), "password");
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         Mockito.when(request.getSession()).thenReturn(Mockito.mock(HttpSession.class));
@@ -132,9 +133,7 @@ public class UserServiceImplTest {
     @Test
     @Transactional
     void testAuthenticateAndGetUserResponseDto_InvalidCredentials() {
-        SignInRequestDto signInRequestDto = new SignInRequestDto();
-        signInRequestDto.setEmail(user.getEmail());
-        signInRequestDto.setPassword("wrongpassword");
+        SignInRequestDto signInRequestDto = new SignInRequestDto(user.getEmail(), "wrongpassword");
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         Mockito.when(request.getSession()).thenReturn(Mockito.mock(HttpSession.class));

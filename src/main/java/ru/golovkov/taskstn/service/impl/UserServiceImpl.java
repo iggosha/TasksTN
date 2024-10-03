@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.golovkov.taskstn.exception.ResourceAlreadyExistsException;
 import ru.golovkov.taskstn.mapper.UserMapper;
 import ru.golovkov.taskstn.model.dto.request.SignInRequestDto;
 import ru.golovkov.taskstn.model.dto.request.UserRequestDto;
@@ -81,6 +82,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponseDto create(UserRequestDto userRequestDto) {
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new ResourceAlreadyExistsException("User with email '" + userRequestDto.getEmail() + "' already exists");
+        }
         User user = userMapper.toEntity(userRequestDto);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user = userRepository.save(user);
