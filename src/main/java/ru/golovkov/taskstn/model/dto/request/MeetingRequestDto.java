@@ -37,7 +37,7 @@ public class MeetingRequestDto {
 
     private Boolean isOnline;
     private Boolean isOutlookEvent;
-    private String applicantId;
+    private UUID applicantId;
     private String authorEmail;
 
     @NotWhitespace(message = "Введено недопустимое значение поля \"Пригласить участника\"")

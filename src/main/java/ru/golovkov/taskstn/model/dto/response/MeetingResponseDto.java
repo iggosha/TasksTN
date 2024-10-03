@@ -20,7 +20,7 @@ public class MeetingResponseDto {
     private boolean isOutlookEvent;
     private boolean isViewMeeting;
     private boolean isStartMeeting;
-    private String applicantId;
+    private UUID applicantId;
     private String authorEmail;
     private List<String> recipientEmails;
 }

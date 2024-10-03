@@ -41,5 +41,10 @@ public class GlobalExceptionHandler {
         return ex.getMessage();
     }
 
-
+    @Hidden
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public String handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex) {
+        return ex.getMessage();
+    }
 }
